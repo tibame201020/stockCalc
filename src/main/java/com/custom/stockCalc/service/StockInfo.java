@@ -2,6 +2,7 @@ package com.custom.stockCalc.service;
 
 import com.custom.stockCalc.model.StockData;
 import com.custom.stockCalc.model.StockImmediateInfo;
+import com.custom.stockCalc.model.financial.FinancialSheet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -17,5 +18,5 @@ public interface StockInfo {
 
     List<String> getCodeNmList(String key) throws Exception;
 
-    void getFinancial(String code, String year, String season) throws Exception;
+    FinancialSheet getFinancial(String code, String year, String season) throws Exception;
 }

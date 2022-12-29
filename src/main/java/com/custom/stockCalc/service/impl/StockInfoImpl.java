@@ -1,8 +1,12 @@
 package com.custom.stockCalc.service.impl;
 
 import com.custom.stockCalc.model.*;
+import com.custom.stockCalc.model.financial.FinancialOriginal;
+import com.custom.stockCalc.model.financial.FinancialSheet;
 import com.custom.stockCalc.provider.DateProvider;
 import com.custom.stockCalc.provider.WebProvider;
+import com.custom.stockCalc.repo.FinancialOriginalRepo;
+import com.custom.stockCalc.repo.FinancialSheetRepo;
 import com.custom.stockCalc.repo.HistoryStockDataRepo;
 import com.custom.stockCalc.repo.TempStockDataRepo;
 import com.custom.stockCalc.service.StockInfo;
@@ -26,6 +30,11 @@ public class StockInfoImpl implements StockInfo {
     private HistoryStockDataRepo historyStockDataRepo;
     @Autowired
     private TempStockDataRepo tempStockDataRepo;
+    @Autowired
+    private FinancialSheetRepo financialSheetRepo;
+    @Autowired
+    private FinancialOriginalRepo financialOriginalRepo;
+
     private WebProvider webProvider = new WebProvider();
     private DateProvider dateProvider = new DateProvider();
     // need 西元年月日 & stockCode
@@ -109,11 +118,25 @@ public class StockInfoImpl implements StockInfo {
     }
 
     @Override
-    public void getFinancial(String code, String year, String season) throws Exception {
+    public FinancialSheet getFinancial(String code, String year, String season) throws Exception {
+        String financialSheetId = code + ":" + year + ":" + season;
+        return financialSheetRepo.findById(financialSheetId).orElse(getFromUrl(code, year, season));
+    }
+
+    private FinancialSheet getFromUrl(String code, String year, String season) throws Exception {
+        String financialSheetId = code + ":" + year + ":" + season;
+        FinancialSheet financialSheet = new FinancialSheet();
+        FinancialOriginal financialOriginal = new FinancialOriginal();
+
+        financialSheet.setFinancialSheetId(financialSheetId);
+        financialOriginal.setFinancialSheetId(financialSheetId);
+
         String url = String.format(FINANCIAL_URL, code, year, season);
         Elements elements = webProvider.getHtmlDoc(url, false).select(".rptidx").next().select("tbody");
+        financialOriginal.setOriginalData(elements.toString());
+        financialOriginalRepo.save(financialOriginal);
         for (Element element:
-             elements) {
+                elements) {
 
             Element stop = element.select("tr th").first();
             if (stop == null || stop.text().contains("當期權益變動表")) {
@@ -125,11 +148,12 @@ public class StockInfoImpl implements StockInfo {
             int preValue = -1;
 
             Elements dataElements = element.select("tr");
+            String sheetName = "";
             for (Element dataElement:
-                 dataElements) {
+                    dataElements) {
                 Element thElement = dataElement.select("th").first();
                 if (thElement != null && !thElement.text().contains("代號Code")) {
-                    String sheetName = thElement.firstElementChild().text();
+                    sheetName = thElement.firstElementChild().text();
                     jsonObject.addProperty("sheetName", sheetName);
                 }
                 if (thElement == null) {
@@ -137,8 +161,20 @@ public class StockInfoImpl implements StockInfo {
                 }
             }
 
-            System.out.println(jsonObject);
+            if (sheetName.equals("資產負債表")) {
+                financialSheet.setBalanceSheet(new Gson().toJson(jsonObject));
+            }
+            if (sheetName.equals("綜合損益表")) {
+                financialSheet.setComprehensiveIncome(new Gson().toJson(jsonObject));
+            }
+            if (sheetName.equals("現金流量表")) {
+                financialSheet.setCashFlows(new Gson().toJson(jsonObject));
+            }
+
         }
+        financialSheetRepo.save(financialSheet);
+
+        return financialSheet;
     }
 
     private int handleData(JsonObject jsonObject, Element dataElement, List<String> props, int preValue) {
@@ -147,20 +183,32 @@ public class StockInfoImpl implements StockInfo {
         String code = dataElements.eq(0).text();
         String name = dataElements.eq(1).select("span").first().text();
         String value = dataElements.eq(2).text();
-        JsonObject children = generateChildJsonObject(code, name, value);
 
-        props = handleProps(props, name, preValue, chargeElementPos(name));
-        String key = "";
-        for (String prop : props) {
-            if (key.length() > 0) {
-                key = key + ".";
-            }
-            key = key + prop.trim();
+        JsonObject children = generateChildJsonObject(code, value);
+        int elementPos = chargeElementPos(name);
+        props = handleProps(props, name, preValue, elementPos);
+        addProp(jsonObject, children, new ArrayList<>(props));
+
+        return elementPos;
+
+    }
+
+
+    private void addProp(JsonObject jsonObject, JsonObject children, List<String> props) {
+        if (children.get("value").getAsString().equals("")) {
+            return;
         }
-        jsonObject.add(key, children);
 
-        return chargeElementPos(name);
-
+        String key = props.get(0);
+        props.remove(0);
+        if (null == jsonObject.getAsJsonObject(key)) {
+            jsonObject.add(key, new JsonObject());
+        }
+        if (props.size() > 0) {
+            addProp(jsonObject.getAsJsonObject(key), children, props);
+        } else {
+            jsonObject.add(key, children);
+        }
     }
 
     private List<String> handleProps(List<String> props, String name, int preValue, int elementPos) {
@@ -184,20 +232,14 @@ public class StockInfoImpl implements StockInfo {
             return temp.subList(0, elementPos + 1);
         }
 
-        if (preValue == elementPos) {
-            props.set(elementPos, category);
-            return props.subList(0, elementPos + 1);
-        }
-
-        props.add(category);
+        props.set(elementPos, category);
         return props.subList(0, elementPos + 1);
     }
 
-    private JsonObject generateChildJsonObject(String code, String name, String value) {
+    private JsonObject generateChildJsonObject(String code, String value) {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("code", code);
-        jsonObject.addProperty("name", name);
-        jsonObject.addProperty("value", value);
+        jsonObject.addProperty("code", code.replaceAll("　", "").replaceAll("\n", "").replaceAll("\r", "").replaceAll(" ", "").trim());
+        jsonObject.addProperty("value", value.replaceAll("　", "").replaceAll("\n", "").replaceAll("\r", "").replaceAll(" ", "").trim());
         return jsonObject;
     }
 
@@ -214,7 +256,7 @@ public class StockInfoImpl implements StockInfo {
     }
 
     public static void main(String[] args) throws Exception {
-        new StockInfoImpl().getFinancial("2330", "2022", "3");
+        new StockInfoImpl().getFinancial("2303", "2022", "3");
 
     }
 

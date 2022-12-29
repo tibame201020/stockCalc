@@ -13,4 +13,7 @@ public class CodeParam implements Serializable {
     private String code;
     private String beginDate;
     private String endDate;
+
+    private String year;
+    private String season;
 }
