@@ -9,15 +9,12 @@ import com.custom.stockCalc.service.StockInfo;
 import com.custom.stockCalc.task.ScheduledTasks;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.safety.Safelist;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.print.Doc;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -114,16 +111,111 @@ public class StockInfoImpl implements StockInfo {
     @Override
     public void getFinancial(String code, String year, String season) throws Exception {
         String url = String.format(FINANCIAL_URL, code, year, season);
-        Elements elements = webProvider.getHtmlDoc(url, false).select(".rptidx").next();
+        Elements elements = webProvider.getHtmlDoc(url, false).select(".rptidx").next().select("tbody");
         for (Element element:
              elements) {
-            System.out.println(Jsoup.clean(element.toString(), Safelist.basic()));
-            System.out.println("===============================================================");
+
+            Element stop = element.select("tr th").first();
+            if (stop == null || stop.text().contains("當期權益變動表")) {
+                break;
+            }
+
+            JsonObject jsonObject = new JsonObject();
+            List<String> props = new ArrayList<>();
+            int preValue = -1;
+
+            Elements dataElements = element.select("tr");
+            for (Element dataElement:
+                 dataElements) {
+                Element thElement = dataElement.select("th").first();
+                if (thElement != null && !thElement.text().contains("代號Code")) {
+                    String sheetName = thElement.firstElementChild().text();
+                    jsonObject.addProperty("sheetName", sheetName);
+                }
+                if (thElement == null) {
+                    preValue = handleData(jsonObject, dataElement, props, preValue);
+                }
+            }
+
+            System.out.println(jsonObject);
         }
+    }
+
+    private int handleData(JsonObject jsonObject, Element dataElement, List<String> props, int preValue) {
+        Elements dataElements = dataElement.select("td");
+
+        String code = dataElements.eq(0).text();
+        String name = dataElements.eq(1).select("span").first().text();
+        String value = dataElements.eq(2).text();
+        JsonObject children = generateChildJsonObject(code, name, value);
+
+        props = handleProps(props, name, preValue, chargeElementPos(name));
+        String key = "";
+        for (String prop : props) {
+            if (key.length() > 0) {
+                key = key + ".";
+            }
+            key = key + prop.trim();
+        }
+        jsonObject.add(key, children);
+
+        return chargeElementPos(name);
+
+    }
+
+    private List<String> handleProps(List<String> props, String name, int preValue, int elementPos) {
+
+        String category = name.replaceAll("　", "");
+
+        if (preValue < elementPos) {
+            List<String> temp;
+            try {
+                temp = props.subList(0, elementPos);
+            } catch (Exception e) {
+                temp = new ArrayList<>();
+            }
+            temp.add(category);
+            return temp.subList(0, elementPos + 1);
+        }
+
+        if (preValue > elementPos) {
+            List<String> temp = props.subList(0, elementPos);
+            temp.add(category);
+            return temp.subList(0, elementPos + 1);
+        }
+
+        if (preValue == elementPos) {
+            props.set(elementPos, category);
+            return props.subList(0, elementPos + 1);
+        }
+
+        props.add(category);
+        return props.subList(0, elementPos + 1);
+    }
+
+    private JsonObject generateChildJsonObject(String code, String name, String value) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("code", code);
+        jsonObject.addProperty("name", name);
+        jsonObject.addProperty("value", value);
+        return jsonObject;
+    }
+
+    private int chargeElementPos(String chargeName) {
+        int blankCnt = 0;
+        for (Character c : chargeName.toCharArray()) {
+            if (c.equals('　')) {
+                blankCnt++;
+            } else {
+                break;
+            }
+        }
+        return blankCnt;
     }
 
     public static void main(String[] args) throws Exception {
         new StockInfoImpl().getFinancial("2330", "2022", "3");
+
     }
 
     private boolean stockCodeIsValid (String stockCode) {
