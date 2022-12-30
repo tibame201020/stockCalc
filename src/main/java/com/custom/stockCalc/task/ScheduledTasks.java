@@ -55,16 +55,13 @@ public class ScheduledTasks {
             if (isSame) {
                 return;
             }
-            taskConfigRepo.deleteById("companyList");
         }
         taskConfigRepo.save(new TaskConfig("companyList", refreshCompanyList));
-        if (taskConfigRepo.findById("stockCodes").isPresent()) {
-            taskConfigRepo.deleteById("stockCodes");
-        }
+
         taskConfigRepo.save(new TaskConfig("stockCodes", refreshStockCodes));
     }
 
-    @Scheduled(fixedRate = 1000 * 60 * 6)
+    @Scheduled(fixedRate = 1000 * 60 * 2)
     public void getStockData() throws Exception {
         stockDataDate = dateProvider.getPreMonthDate(stockDataDate);
         String next = getNextStockDataCompany(stockDataDate);
@@ -84,7 +81,7 @@ public class ScheduledTasks {
         log.info("getStockData : {" + next + " ," + stockDataDate + " ," + stockDataList + " }");
     }
 
-    @Scheduled(fixedRate = 1000 * 60 * 6)
+    @Scheduled(fixedRate = 1000 * 60 * 2)
     public void getFinancialData() throws Exception {
         financialDate = dateProvider.getPreSeasonDate(financialDate);
         String next = getNextFinancialCompany(financialDate);
@@ -95,9 +92,27 @@ public class ScheduledTasks {
         }
 
         FinancialSheet financialSheet = stockInfo.getFinancial(next, financialDate.split(":")[0], financialDate.split(":")[1]);
-        log.info("getFinancialData args = " + next + " : " + financialDate + " : " + financialSheet);
+        if (financialSheet.getSheets().length == 0) {
+            getFinancialData(getNextFinancialCompany("changeNewStockCode"));
+        } else {
+            log.info("getFinancialData args = " + next + " : " + financialDate + " : " + financialSheet);
+        }
     }
 
+    private void getFinancialData(String next) throws Exception {
+        financialDate = dateProvider.getPreSeasonDate(financialDate);
+        if (next.equals("nothing left")) {
+            System.out.println("nothing left");
+            return;
+        }
+
+        FinancialSheet financialSheet = stockInfo.getFinancial(next, financialDate.split(":")[0], financialDate.split(":")[1]);
+        if (financialSheet.getSheets().length == 0) {
+            getFinancialData(getNextFinancialCompany("changeNewStockCode"));
+        } else {
+            log.info("getFinancialData args = " + next + " : " + financialDate + " : " + financialSheet);
+        }
+    }
 
     private String getNextStockDataCompany(String stockDataDate) {
         List<String> remainStockDataList= getRemainStockDataCompany();
