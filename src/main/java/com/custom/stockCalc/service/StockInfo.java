@@ -20,4 +20,5 @@ public interface StockInfo {
     List<String> getCodeNmList(String key) throws Exception;
 
     FinancialSheet getFinancial(String code, String year, String season) throws Exception;
+    List<StockData> getStockInfo(String code, String dateStr, boolean isThisMonth) throws Exception;
 }

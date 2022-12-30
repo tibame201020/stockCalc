@@ -15,7 +15,7 @@ public class TaskConfig {
     @Id
     private String configName;
     @Lob
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @OrderColumn
     private List<String> configValue;
 }

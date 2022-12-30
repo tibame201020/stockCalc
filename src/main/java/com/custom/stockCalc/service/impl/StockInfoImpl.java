@@ -255,13 +255,14 @@ public class StockInfoImpl implements StockInfo {
         return stockCodes.contains(stockCode);
     }
 
-    private List<StockData> getStockInfo(String code, String dateStr, boolean isThisMonth) throws Exception {
+    @Override
+    public List<StockData> getStockInfo(String code, String dateStr, boolean isThisMonth) throws Exception {
         String yearMonthCode = code + ":" + dateProvider.getYearMonth(dateStr);
         List<StockData> stockDataList = isThisMonth ?
                 tempStockDataRepo.findByYearMonthCode(yearMonthCode) :
                 historyStockDataRepo.findByYearMonthCode(yearMonthCode);
 
-        if (!stockDataList.isEmpty()) {
+        if (stockDataList != null && !stockDataList.isEmpty()) {
             if (isThisMonth) {
                 LocalDate updateDate = stockDataList.get(0).getUpdateDate();
                 if (dateProvider.isUpdateDateToday(updateDate)) {
@@ -276,11 +277,14 @@ public class StockInfoImpl implements StockInfo {
         return getStockInfoFromUrl(code, dateStr, isThisMonth);
     }
 
-    private List<StockData> getStockInfoFromUrl(String code, String dateStr, boolean isThisMonth) throws Exception {
+    public List<StockData> getStockInfoFromUrl(String code, String dateStr, boolean isThisMonth) throws Exception {
         String url = String.format(STOCK_INFO_URL, dateStr, code);
         StockBasicInfo stockBasicInfo = webProvider.getUrlToObject(url, StockBasicInfo.class);
 
         List<? extends StockData> stockDataListFromUrl = translateJsonData(stockBasicInfo.getData(), code, isThisMonth);
+        if (stockDataListFromUrl == null || stockDataListFromUrl.isEmpty()) {
+            return null;
+        }
         if (isThisMonth) {
             tempStockDataRepo.saveAll((List<TempStockData>) stockDataListFromUrl);
         } else {
@@ -289,13 +293,21 @@ public class StockInfoImpl implements StockInfo {
         return (List<StockData>) stockDataListFromUrl;
     }
 
+    public static void main(String[] args) throws Exception {
+        System.out.println(new StockInfoImpl().getStockInfoFromUrl("1341", "2020101", false));
+    }
+
     private List<? extends StockData> translateJsonData(String[][] data, String code, boolean isThisMonth) {
-        List<StockData> stockDataList = new ArrayList<>();
-        for (String[] dataInfo : data) {
-            StockData stockData = translateStockData(dataInfo, code, isThisMonth);
-            stockDataList.add(stockData);
+        try {
+            List<StockData> stockDataList = new ArrayList<>();
+            for (String[] dataInfo : data) {
+                StockData stockData = translateStockData(dataInfo, code, isThisMonth);
+                stockDataList.add(stockData);
+            }
+            return stockDataList;
+        } catch (Exception e) {
+            return null;
         }
-        return stockDataList;
     }
 
     private StockData translateStockData(String[] dataInfo, String code, boolean isThisMonth) {
