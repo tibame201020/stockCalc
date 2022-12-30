@@ -4,11 +4,12 @@ import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.jsoup.Jsoup;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 @ToString
 @Setter
@@ -17,11 +18,7 @@ import java.io.Serializable;
 public class FinancialSheet implements Serializable {
     @Id
     private String financialSheetId;
-    @Lob
-    private String balanceSheet;//資產負債表
-    @Lob
-    private String comprehensiveIncome;//綜合損益表
-    @Lob
-    private String cashFlows; //現金流量表
+    @Lob @ElementCollection @OrderColumn
+    private String[] sheets;
 
 }

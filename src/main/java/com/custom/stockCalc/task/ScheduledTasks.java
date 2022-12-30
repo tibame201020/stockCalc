@@ -34,7 +34,7 @@ public class ScheduledTasks {
                 for (Element element:
                         elements) {
                     refreshCompanyList.add(element.text().trim());
-                    refreshStockCodes.add(element.text().split(" ")[0].trim());
+                    refreshStockCodes.add(element.text().split("　")[0].trim());
                 }
             }
             companyList = refreshCompanyList;

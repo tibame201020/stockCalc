@@ -135,9 +135,10 @@ public class StockInfoImpl implements StockInfo {
         Elements elements = webProvider.getHtmlDoc(url, false).select(".rptidx").next().select("tbody");
         financialOriginal.setOriginalData(elements.toString());
         financialOriginalRepo.save(financialOriginal);
-        for (Element element:
-                elements) {
 
+        List<JsonObject> sheets = new ArrayList<>();
+
+        for (Element element : elements) {
             Element stop = element.select("tr th").first();
             if (stop == null || stop.text().contains("當期權益變動表")) {
                 break;
@@ -161,17 +162,13 @@ public class StockInfoImpl implements StockInfo {
                 }
             }
 
-            if (sheetName.equals("資產負債表")) {
-                financialSheet.setBalanceSheet(new Gson().toJson(jsonObject));
-            }
-            if (sheetName.equals("綜合損益表")) {
-                financialSheet.setComprehensiveIncome(new Gson().toJson(jsonObject));
-            }
-            if (sheetName.equals("現金流量表")) {
-                financialSheet.setCashFlows(new Gson().toJson(jsonObject));
-            }
-
+            sheets.add(jsonObject);
         }
+        financialSheet.setSheets(
+                sheets.stream()
+                .map(jsonObject -> new Gson().toJson(jsonObject))
+                .toArray(String[]::new)
+        );
         financialSheetRepo.save(financialSheet);
 
         return financialSheet;
@@ -253,11 +250,6 @@ public class StockInfoImpl implements StockInfo {
             }
         }
         return blankCnt;
-    }
-
-    public static void main(String[] args) throws Exception {
-        new StockInfoImpl().getFinancial("2303", "2022", "3");
-
     }
 
     private boolean stockCodeIsValid (String stockCode) {
