@@ -5,12 +5,8 @@ import com.custom.stockCalc.model.financial.FinancialOriginal;
 import com.custom.stockCalc.model.financial.FinancialSheet;
 import com.custom.stockCalc.provider.DateProvider;
 import com.custom.stockCalc.provider.WebProvider;
-import com.custom.stockCalc.repo.FinancialOriginalRepo;
-import com.custom.stockCalc.repo.FinancialSheetRepo;
-import com.custom.stockCalc.repo.HistoryStockDataRepo;
-import com.custom.stockCalc.repo.TempStockDataRepo;
+import com.custom.stockCalc.repo.*;
 import com.custom.stockCalc.service.StockInfo;
-import com.custom.stockCalc.task.ScheduledTasks;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.jsoup.nodes.Document;
@@ -21,22 +17,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class StockInfoImpl implements StockInfo {
-    @Autowired
-    private HistoryStockDataRepo historyStockDataRepo;
-    @Autowired
-    private TempStockDataRepo tempStockDataRepo;
-    @Autowired
-    private FinancialSheetRepo financialSheetRepo;
-    @Autowired
-    private FinancialOriginalRepo financialOriginalRepo;
-
-    private WebProvider webProvider = new WebProvider();
-    private DateProvider dateProvider = new DateProvider();
     // need 西元年月日 & stockCode
     String STOCK_INFO_URL = "https://www.twse.com.tw/en/exchangeReport/STOCK_DAY?response=json&date=%s&stockNo=%s";
     // need stockCode
@@ -47,6 +35,18 @@ public class StockInfoImpl implements StockInfo {
     String companyCategory = "%s_%s";
     // need stockCode 西元年月日 season
     String FINANCIAL_URL = "https://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID=%s&SYEAR=%s&SSEASON=%s&REPORT_ID=C#BalanceSheet";
+    @Autowired
+    private HistoryStockDataRepo historyStockDataRepo;
+    @Autowired
+    private TempStockDataRepo tempStockDataRepo;
+    @Autowired
+    private FinancialSheetRepo financialSheetRepo;
+    @Autowired
+    private FinancialOriginalRepo financialOriginalRepo;
+    @Autowired
+    private TaskConfigRepo taskConfigRepo;
+    private WebProvider webProvider = new WebProvider();
+    private DateProvider dateProvider = new DateProvider();
 
     @Override
     public List<StockData> getStockData(String code, String beginDate, String endDate) throws Exception {
@@ -114,7 +114,8 @@ public class StockInfoImpl implements StockInfo {
 
     @Override
     public List<String> getCodeNmList(String key) throws Exception {
-        return ScheduledTasks.getCompanyList().stream().filter(s -> s.contains(key)).collect(Collectors.toList());
+        List<String> companyList = taskConfigRepo.getReferenceById("companyList").getConfigValue();
+        return companyList.stream().filter(s -> s.contains(key)).collect(Collectors.toList());
     }
 
     @Override
@@ -126,15 +127,12 @@ public class StockInfoImpl implements StockInfo {
     private FinancialSheet getFromUrl(String code, String year, String season) throws Exception {
         String financialSheetId = code + ":" + year + ":" + season;
         FinancialSheet financialSheet = new FinancialSheet();
-        FinancialOriginal financialOriginal = new FinancialOriginal();
-
         financialSheet.setFinancialSheetId(financialSheetId);
-        financialOriginal.setFinancialSheetId(financialSheetId);
 
         String url = String.format(FINANCIAL_URL, code, year, season);
         Elements elements = webProvider.getHtmlDoc(url, false).select(".rptidx").next().select("tbody");
-        financialOriginal.setOriginalData(elements.toString());
-        financialOriginalRepo.save(financialOriginal);
+
+        financialOriginalRepo.save(new FinancialOriginal(financialSheetId, elements.toString(), url));
 
         List<JsonObject> sheets = new ArrayList<>();
 
@@ -150,7 +148,7 @@ public class StockInfoImpl implements StockInfo {
 
             Elements dataElements = element.select("tr");
             String sheetName = "";
-            for (Element dataElement:
+            for (Element dataElement :
                     dataElements) {
                 Element thElement = dataElement.select("th").first();
                 if (thElement != null && !thElement.text().contains("代號Code")) {
@@ -166,8 +164,8 @@ public class StockInfoImpl implements StockInfo {
         }
         financialSheet.setSheets(
                 sheets.stream()
-                .map(jsonObject -> new Gson().toJson(jsonObject))
-                .toArray(String[]::new)
+                        .map(jsonObject -> new Gson().toJson(jsonObject))
+                        .toArray(String[]::new)
         );
         financialSheetRepo.save(financialSheet);
 
@@ -252,14 +250,15 @@ public class StockInfoImpl implements StockInfo {
         return blankCnt;
     }
 
-    private boolean stockCodeIsValid (String stockCode) {
-        return ScheduledTasks.getStockCodes().contains(stockCode);
+    private boolean stockCodeIsValid(String stockCode) {
+        List<String> stockCodes = taskConfigRepo.getReferenceById("stockCodes").getConfigValue();
+        return stockCodes.contains(stockCode);
     }
 
     private List<StockData> getStockInfo(String code, String dateStr, boolean isThisMonth) throws Exception {
         String yearMonthCode = code + ":" + dateProvider.getYearMonth(dateStr);
-        List<StockData> stockDataList = isThisMonth?
-                tempStockDataRepo.findByYearMonthCode(yearMonthCode):
+        List<StockData> stockDataList = isThisMonth ?
+                tempStockDataRepo.findByYearMonthCode(yearMonthCode) :
                 historyStockDataRepo.findByYearMonthCode(yearMonthCode);
 
         if (!stockDataList.isEmpty()) {
@@ -283,9 +282,9 @@ public class StockInfoImpl implements StockInfo {
 
         List<? extends StockData> stockDataListFromUrl = translateJsonData(stockBasicInfo.getData(), code, isThisMonth);
         if (isThisMonth) {
-            tempStockDataRepo.saveAll((List<TempStockData>)stockDataListFromUrl);
+            tempStockDataRepo.saveAll((List<TempStockData>) stockDataListFromUrl);
         } else {
-            historyStockDataRepo.saveAll((List<HistoryStockData>)stockDataListFromUrl);
+            historyStockDataRepo.saveAll((List<HistoryStockData>) stockDataListFromUrl);
         }
         return (List<StockData>) stockDataListFromUrl;
     }

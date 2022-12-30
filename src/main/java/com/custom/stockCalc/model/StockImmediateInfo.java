@@ -25,15 +25,16 @@ public class StockImmediateInfo implements Serializable {
     private PriceVolume[] askToBuys;
 
     private String company;
+
     public StockImmediateInfo(JsonObject jsonObject) {
         this.code = jsonObject.get("c").getAsString();
-        this.openToday =  jsonObject.get("o").getAsString();
-        this.closeYesterday =  jsonObject.get("y").getAsString();
-        this.high =  jsonObject.get("h").getAsString();
-        this.low =  jsonObject.get("l").getAsString();
-        this.totalVolumes =  jsonObject.get("v").getAsString();
-        this.company =  jsonObject.get("nf").getAsString();
-        this.deal =  new PriceVolume(jsonObject.get("z").getAsString(), jsonObject.get("s").getAsString());
+        this.openToday = jsonObject.get("o").getAsString();
+        this.closeYesterday = jsonObject.get("y").getAsString();
+        this.high = jsonObject.get("h").getAsString();
+        this.low = jsonObject.get("l").getAsString();
+        this.totalVolumes = jsonObject.get("v").getAsString();
+        this.company = jsonObject.get("nf").getAsString();
+        this.deal = new PriceVolume(jsonObject.get("z").getAsString(), jsonObject.get("s").getAsString());
         this.askToSells = transPriceVolumeArray(jsonObject.get("a").getAsString(), jsonObject.get("f").getAsString());
         this.askToBuys = transPriceVolumeArray(jsonObject.get("b").getAsString(), jsonObject.get("g").getAsString());
     }

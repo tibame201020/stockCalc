@@ -10,13 +10,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class StockCalcApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(StockCalcApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(StockCalcApplication.class, args);
+    }
 
-	@Bean
-	CommandLineRunner run() {
-		return args -> {
+    @Bean
+    CommandLineRunner run() {
+        return args -> {
 //			Log log = LogFactory.getLog(this.getClass());
 //
 //			File electron_exe = ResourceUtils.getFile("electron/WinApp.exe");
@@ -25,7 +25,7 @@ public class StockCalcApplication {
 //
 //			log.info("=== start exe ===");
 //			Runtime.getRuntime().exec(exe_path);
-		};
-	}
+        };
+    }
 
 }

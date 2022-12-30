@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface FinancialSheetRepo extends JpaRepository<FinancialSheet ,String> {
+public interface FinancialSheetRepo extends JpaRepository<FinancialSheet, String> {
 }

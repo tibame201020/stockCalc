@@ -12,6 +12,7 @@ import java.util.Map;
 public interface StockInfo {
 
     Log log = LogFactory.getLog(StockInfo.class);
+
     List<StockData> getStockData(String code, String beginDate, String endDate) throws Exception;
 
     Map<String, StockImmediateInfo> getImmediateStock(String code) throws Exception;

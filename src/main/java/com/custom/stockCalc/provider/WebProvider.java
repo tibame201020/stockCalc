@@ -15,11 +15,11 @@ public class WebProvider {
         SSLUtil.trustAllHttpsCertificates();
         String html = Jsoup.connect(url).userAgent(userAgent).ignoreContentType(true).get().toString();
         return isNeedClean ?
-                Jsoup.parseBodyFragment(Jsoup.clean(html, Safelist.basic())):
+                Jsoup.parseBodyFragment(Jsoup.clean(html, Safelist.basic())) :
                 Jsoup.parseBodyFragment(html);
     }
 
-    public <T> T  getUrlToObject(String url, Class<T> c) throws Exception {
+    public <T> T getUrlToObject(String url, Class<T> c) throws Exception {
         SSLUtil.trustAllHttpsCertificates();
 
         return new RestTemplate().getForObject(url, c);

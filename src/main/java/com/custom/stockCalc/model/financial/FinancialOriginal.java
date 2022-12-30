@@ -1,9 +1,6 @@
 package com.custom.stockCalc.model.financial;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.jsoup.select.Elements;
+import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -14,6 +11,8 @@ import java.io.Serializable;
 @Setter
 @Getter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class FinancialOriginal implements Serializable {
     @Id
     private String financialSheetId;
