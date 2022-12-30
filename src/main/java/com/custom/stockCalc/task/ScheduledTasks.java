@@ -51,6 +51,10 @@ public class ScheduledTasks {
             }
         }
         if (taskConfigRepo.findById("companyList").isPresent()) {
+            boolean isSame = taskConfigRepo.findById("companyList").get().getConfigValue().equals(refreshCompanyList);
+            if (isSame) {
+                return;
+            }
             taskConfigRepo.deleteById("companyList");
         }
         taskConfigRepo.save(new TaskConfig("companyList", refreshCompanyList));

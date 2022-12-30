@@ -34,3 +34,5 @@ build/
 h2data/test.mv.db
 h2data/test.lock.db
 h2data/test.trace.db
+h2data/test.lock.db.mv.db
+h2data/test.lock.db.trace.db
