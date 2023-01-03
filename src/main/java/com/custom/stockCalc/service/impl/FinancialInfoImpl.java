@@ -1,5 +1,6 @@
 package com.custom.stockCalc.service.impl;
 
+import com.custom.stockCalc.model.config.TaskConfig;
 import com.custom.stockCalc.model.financial.FinancialOriginal;
 import com.custom.stockCalc.model.financial.FinancialSheet;
 import com.custom.stockCalc.provider.WebProvider;
@@ -26,12 +27,22 @@ public class FinancialInfoImpl implements FinancialInfo {
     private FinancialSheetRepo financialSheetRepo;
     @Autowired
     private FinancialOriginalRepo financialOriginalRepo;
+    @Autowired
+    private TaskConfigRepo taskConfigRepo;
 
     private WebProvider webProvider = new WebProvider();
 
     @Override
     public FinancialSheet getFinancial(String code, String year, String season) throws Exception {
+        if (!stockCodeIsValid(code)) {
+            return null;
+        }
         return financialSheetRepo.findById(code + ":" + year + ":" + season).orElse(getFinancialFromUrl(code, year, season));
+    }
+
+    private boolean stockCodeIsValid(String stockCode) {
+        List<String> stockCodes = taskConfigRepo.findById("stockCodes_financial").orElse(new TaskConfig()).getConfigValue();
+        return stockCodes.contains(stockCode);
     }
 
     private FinancialSheet getFinancialFromUrl(String code, String year, String season) throws Exception {
@@ -116,7 +127,6 @@ public class FinancialInfoImpl implements FinancialInfo {
     }
 
     private List<String> handleProps(List<String> props, String name, int preValue, int elementPos) {
-
         String category = name.replaceAll("　", "");
 
         if (preValue < elementPos) {

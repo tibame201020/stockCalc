@@ -1,6 +1,7 @@
 package com.custom.stockCalc.service.impl;
 
 import com.custom.stockCalc.model.*;
+import com.custom.stockCalc.model.config.TaskConfig;
 import com.custom.stockCalc.provider.DateProvider;
 import com.custom.stockCalc.provider.WebProvider;
 import com.custom.stockCalc.repo.HistoryStockDataRepo;
@@ -112,7 +113,7 @@ public class StockInfoImpl implements StockInfo {
     }
 
     private boolean stockCodeIsValid(String stockCode) {
-        List<String> stockCodes = taskConfigRepo.getReferenceById("stockCodes").getConfigValue();
+        List<String> stockCodes = taskConfigRepo.findById("stockCodes").orElse(new TaskConfig()).getConfigValue();
         return stockCodes.contains(stockCode);
     }
 
