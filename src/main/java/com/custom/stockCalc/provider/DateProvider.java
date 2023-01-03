@@ -24,7 +24,7 @@ public class DateProvider {
         LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
         date = date.plusMonths(-1);
         if (date.getYear() == 2009) {
-            return "changeNewStockCode:20221101";
+            return "changeNewStockCode";
         }
         return date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
@@ -35,7 +35,7 @@ public class DateProvider {
         String season = array[1];
         int preYear = Integer.parseInt(year) - 1;
         if (preYear == 2018) {
-            return "changeNewStockCode:2022:3";
+            return "changeNewStockCode";
         }
         switch (season) {
             case "1":
