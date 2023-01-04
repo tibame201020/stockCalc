@@ -1,6 +1,8 @@
 package com.custom.stockCalc.provider;
 
 
+import com.custom.stockCalc.model.config.TaskKey;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -24,7 +26,7 @@ public class DateProvider {
         LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
         date = date.plusMonths(-1);
         if (date.getYear() == 2009) {
-            return "changeNewStockCode";
+            return TaskKey.changeNewStockCode.toString();
         }
         return date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
@@ -35,7 +37,7 @@ public class DateProvider {
         String season = array[1];
         int preYear = Integer.parseInt(year) - 1;
         if (preYear == 2018) {
-            return "changeNewStockCode";
+            return TaskKey.changeNewStockCode.toString();
         }
         switch (season) {
             case "1":
