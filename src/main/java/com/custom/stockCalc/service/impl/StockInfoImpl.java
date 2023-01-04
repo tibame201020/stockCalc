@@ -2,6 +2,7 @@ package com.custom.stockCalc.service.impl;
 
 import com.custom.stockCalc.model.*;
 import com.custom.stockCalc.model.config.TaskConfig;
+import com.custom.stockCalc.model.config.TaskKey;
 import com.custom.stockCalc.provider.DateProvider;
 import com.custom.stockCalc.provider.WebProvider;
 import com.custom.stockCalc.repo.HistoryStockDataRepo;
@@ -108,12 +109,12 @@ public class StockInfoImpl implements StockInfo {
 
     @Override
     public List<String> getCodeNmList(String key) throws Exception {
-        List<String> companyList = taskConfigRepo.getReferenceById("companyList").getConfigValue();
+        List<String> companyList = taskConfigRepo.findById(TaskKey.companyList.toString()).orElse(new TaskConfig()).getConfigValue();
         return companyList.stream().filter(s -> s.contains(key)).collect(Collectors.toList());
     }
 
     private boolean stockCodeIsValid(String stockCode) {
-        List<String> stockCodes = taskConfigRepo.findById("stockCodes").orElse(new TaskConfig()).getConfigValue();
+        List<String> stockCodes = taskConfigRepo.findById(TaskKey.stockCodes.toString()).orElse(new TaskConfig()).getConfigValue();
         return stockCodes.contains(stockCode);
     }
 

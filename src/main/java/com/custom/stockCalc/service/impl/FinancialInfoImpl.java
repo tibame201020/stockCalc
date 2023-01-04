@@ -1,6 +1,7 @@
 package com.custom.stockCalc.service.impl;
 
 import com.custom.stockCalc.model.config.TaskConfig;
+import com.custom.stockCalc.model.config.TaskKey;
 import com.custom.stockCalc.model.financial.FinancialOriginal;
 import com.custom.stockCalc.model.financial.FinancialSheet;
 import com.custom.stockCalc.provider.WebProvider;
@@ -41,7 +42,7 @@ public class FinancialInfoImpl implements FinancialInfo {
     }
 
     private boolean stockCodeIsValid(String stockCode) {
-        List<String> stockCodes = taskConfigRepo.findById("stockCodes_financial").orElse(new TaskConfig()).getConfigValue();
+        List<String> stockCodes = taskConfigRepo.findById(TaskKey.stockCodes_financial.toString()).orElse(new TaskConfig()).getConfigValue();
         return stockCodes.contains(stockCode);
     }
 
