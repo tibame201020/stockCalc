@@ -59,7 +59,13 @@ public class StockInfoImpl implements StockInfo {
         }
         LocalDate begin = LocalDate.parse(beginDate, formatter).withDayOfMonth(1);
         LocalDate end = LocalDate.parse(endDate, formatter).withDayOfMonth(1).plusMonths(1);
+        LocalDate now = LocalDate.now();
         for (LocalDate date = begin; date.isBefore(end); date = date.plusMonths(1)) {
+
+            if (date.isAfter(now)) {
+                break;
+            }
+
             String dateFormat = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             boolean isThisMonth = dateProvider.isThisMonth(dateFormat);
             stockDataList.addAll(getStockInfo(code, dateFormat, isThisMonth));
@@ -109,12 +115,12 @@ public class StockInfoImpl implements StockInfo {
 
     @Override
     public List<String> getCodeNmList(String key) throws Exception {
-        List<String> companyList = taskConfigRepo.findById(TaskKey.companyList.toString()).orElse(new TaskConfig()).getConfigValue();
+        List<String> companyList = taskConfigRepo.findById(TaskKey.companyList.toString()).orElseGet(TaskConfig::new).getConfigValue();
         return companyList.stream().filter(s -> s.contains(key)).collect(Collectors.toList());
     }
 
     private boolean stockCodeIsValid(String stockCode) {
-        List<String> stockCodes = taskConfigRepo.findById(TaskKey.stockCodes.toString()).orElse(new TaskConfig()).getConfigValue();
+        List<String> stockCodes = taskConfigRepo.findById(TaskKey.stockCodes.toString()).orElseGet(TaskConfig::new).getConfigValue();
         return stockCodes.contains(stockCode);
     }
 
@@ -142,7 +148,12 @@ public class StockInfoImpl implements StockInfo {
 
     public List<StockData> getStockInfoFromUrl(String code, String dateStr, boolean isThisMonth) throws Exception {
         String url = String.format(STOCK_INFO_URL, dateStr, code);
-        StockBasicInfo stockBasicInfo = webProvider.getUrlToObject(url, StockBasicInfo.class);
+        StockBasicInfo stockBasicInfo;
+        try {
+            stockBasicInfo = webProvider.getUrlToObject(url, StockBasicInfo.class);
+        } catch (Exception e) {
+            return null;
+        }
 
         List<? extends StockData> stockDataListFromUrl = translateJsonData(stockBasicInfo.getData(), code, isThisMonth);
         if (stockDataListFromUrl == null || stockDataListFromUrl.isEmpty()) {

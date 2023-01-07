@@ -4,10 +4,9 @@ import com.custom.stockCalc.model.config.TaskConfig;
 import com.custom.stockCalc.model.config.TaskKey;
 import com.custom.stockCalc.model.financial.FinancialOriginal;
 import com.custom.stockCalc.model.financial.FinancialSheet;
+import com.custom.stockCalc.model.financial.SimpleSheet;
 import com.custom.stockCalc.provider.WebProvider;
-import com.custom.stockCalc.repo.FinancialOriginalRepo;
-import com.custom.stockCalc.repo.FinancialSheetRepo;
-import com.custom.stockCalc.repo.TaskConfigRepo;
+import com.custom.stockCalc.repo.*;
 import com.custom.stockCalc.service.FinancialInfo;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -15,13 +14,16 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 public class FinancialInfoImpl implements FinancialInfo {
 
+    private final WebProvider webProvider = new WebProvider();
     // need stockCode 西元年月日 season
     String FINANCIAL_URL = "https://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID=%s&SYEAR=%s&SSEASON=%s&REPORT_ID=C#BalanceSheet";
     @Autowired
@@ -30,16 +32,114 @@ public class FinancialInfoImpl implements FinancialInfo {
     private FinancialOriginalRepo financialOriginalRepo;
     @Autowired
     private TaskConfigRepo taskConfigRepo;
-
-    private WebProvider webProvider = new WebProvider();
+    @Autowired
+    private SimpleSheetRepo simpleSheetRepo;
 
     @Override
     public FinancialSheet getFinancial(String code, String year, String season) throws Exception {
         if (!stockCodeIsValid(code)) {
             return null;
         }
-        return financialSheetRepo.findById(code + ":" + year + ":" + season).orElse(getFinancialFromUrl(code, year, season));
+        return financialSheetRepo.findById(code + ":" + year + ":" + season).orElseGet(() -> {
+            try {
+                return getFinancialFromUrl(code, year, season);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
+
+    @Override
+    public SimpleSheet getSimpleSheet(String code, String year, String season) throws Exception {
+        return simpleSheetRepo.findById(code + ":" + year + ":" + season).orElseGet(() -> {
+            try {
+                return getSimpleSheetFromUrl(code, year, season);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Override
+    public List<SimpleSheet> getSheetByCodeAndDateRange(String code, String beginDate, String endDate) throws Exception {
+        List<SimpleSheet> sheets = new ArrayList<>();
+
+        DateTimeFormatter formatter;
+        if (beginDate.contains("/")) {
+            formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        } else {
+            formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        }
+
+        LocalDate begin = LocalDate.parse(beginDate, formatter).withDayOfMonth(1);
+        LocalDate end = LocalDate.parse(endDate, formatter).withDayOfMonth(1).plusMonths(1);
+
+        for (LocalDate date = begin; date.isBefore(end); date = date.plusMonths(3)) {
+            String yearSeason = getYearSeason(date);
+            if (yearSeason.equals("there is limit")) {
+                break;
+            }
+            SimpleSheet simpleSheet = getSimpleSheet(code, yearSeason.split(":")[0], yearSeason.split(":")[1]);
+            if (null == simpleSheet || null == simpleSheet.getEps()) {
+                continue;
+            }
+            sheets.add(simpleSheet);
+        }
+
+        return sheets;
+    }
+
+    /**
+     * 取得年份:季度
+     * @param date
+     * @return yearSeasonStr
+     */
+
+    private String getYearSeason(LocalDate date) {
+        LocalDate now = LocalDate.now();
+        String limitYearSeason = now.getYear() + ":" + getSeason(now.getMonthValue());
+        String yearSeason = date.getYear() + ":" + getSeason(date.getMonthValue());
+
+        if (limitYearSeason.equals(yearSeason)) {
+            return "there is limit";
+        }
+
+        return yearSeason;
+    }
+
+    /**
+     * 取得第幾季
+     * @param month
+     * @return seasonStr
+     */
+    private String getSeason(int month) {
+        if (month >= 1 && month <= 3) {
+            return "1";
+        }
+        if (month >= 4 && month <= 6) {
+            return "2";
+        }
+        if (month >= 7 && month <= 9) {
+            return "3";
+        }
+        return "4";
+    }
+
+    private SimpleSheet getSimpleSheetFromUrl(String code, String year, String season) throws Exception {
+        FinancialSheet financialSheet = getFinancial(code, year, season);
+        if (financialSheet == null || CollectionUtils.isEmpty(Arrays.asList(financialSheet.getSheets()))) {
+            return null;
+        }
+
+        SimpleSheet simpleSheet = new SimpleSheet( code + ":" + year + ":" + season, financialSheet.getSheets());
+
+        if (null == simpleSheet.getEps()) {
+            return null;
+        }
+
+        return simpleSheetRepo.save(simpleSheet);
+    }
+
 
     private boolean stockCodeIsValid(String stockCode) {
         List<String> stockCodes = taskConfigRepo.findById(TaskKey.stockCodes_financial.toString()).orElse(new TaskConfig()).getConfigValue();
@@ -81,7 +181,6 @@ public class FinancialInfoImpl implements FinancialInfo {
                     preValue = handleData(jsonObject, dataElement, props, preValue);
                 }
             }
-
             sheets.add(jsonObject);
         }
         financialSheet.setSheets(
@@ -89,6 +188,9 @@ public class FinancialInfoImpl implements FinancialInfo {
                         .map(jsonObject -> new Gson().toJson(jsonObject))
                         .toArray(String[]::new)
         );
+
+        simpleSheetRepo.save(new SimpleSheet(financialSheetId, financialSheet.getSheets()));
+
         financialSheetRepo.save(financialSheet);
 
         return financialSheet;

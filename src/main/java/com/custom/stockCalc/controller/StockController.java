@@ -3,6 +3,7 @@ package com.custom.stockCalc.controller;
 import com.custom.stockCalc.model.CodeParam;
 import com.custom.stockCalc.model.StockData;
 import com.custom.stockCalc.model.StockImmediateInfo;
+import com.custom.stockCalc.model.financial.SimpleSheet;
 import com.custom.stockCalc.service.FinancialInfo;
 import com.custom.stockCalc.service.StockInfo;
 import com.google.gson.Gson;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,4 +42,10 @@ public class StockController {
                 .map(jsonStr -> new Gson().fromJson(jsonStr, Map.class))
                 .collect(Collectors.toList());
     }
+
+    @RequestMapping("/getSheetByCodeAndDateRange")
+    public List<SimpleSheet> getSheetByCodeAndDateRange(@RequestBody CodeParam codeParam) throws Exception {
+        return financialInfo.getSheetByCodeAndDateRange(codeParam.getCode(), codeParam.getBeginDate(), codeParam.getEndDate());
+    }
+
 }

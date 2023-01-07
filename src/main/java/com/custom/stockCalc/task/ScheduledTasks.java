@@ -73,7 +73,7 @@ public class ScheduledTasks {
         return taskConfigRepo.save(new TaskConfig(key, companyList)).getConfigValue();
     }
 
-    @Scheduled(fixedDelay = 1000 * 60)
+//    @Scheduled(fixedDelay = 1000 * 60)
     public void getStockData() throws Exception {
         stockDataDate = dateProvider.getPreMonthDate(stockDataDate);
         String next = getNextStockDataCompany(stockDataDate.contains(TaskKey.changeNewStockCode.toString()));
@@ -87,7 +87,7 @@ public class ScheduledTasks {
         logData("getStockData", next, stockDataDate, stockDataList);
     }
 
-    @Scheduled(fixedDelay = 1000 * 60)
+//    @Scheduled(fixedDelay = 1000 * 60)
     public void getFinancialData() throws Exception {
         financialDate = dateProvider.getPreSeasonDate(financialDate);
         String next = getNextFinancialCompany(financialDate.contains(TaskKey.changeNewStockCode.toString()));
