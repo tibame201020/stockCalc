@@ -6,7 +6,10 @@ import com.custom.stockCalc.model.financial.FinancialOriginal;
 import com.custom.stockCalc.model.financial.FinancialSheet;
 import com.custom.stockCalc.model.financial.SimpleSheet;
 import com.custom.stockCalc.provider.WebProvider;
-import com.custom.stockCalc.repo.*;
+import com.custom.stockCalc.repo.FinancialOriginalRepo;
+import com.custom.stockCalc.repo.FinancialSheetRepo;
+import com.custom.stockCalc.repo.SimpleSheetRepo;
+import com.custom.stockCalc.repo.TaskConfigRepo;
 import com.custom.stockCalc.service.FinancialInfo;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -18,7 +21,9 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class FinancialInfoImpl implements FinancialInfo {
@@ -91,6 +96,7 @@ public class FinancialInfoImpl implements FinancialInfo {
 
     /**
      * 取得年份:季度
+     *
      * @param date
      * @return yearSeasonStr
      */
@@ -109,6 +115,7 @@ public class FinancialInfoImpl implements FinancialInfo {
 
     /**
      * 取得第幾季
+     *
      * @param month
      * @return seasonStr
      */
@@ -131,7 +138,7 @@ public class FinancialInfoImpl implements FinancialInfo {
             return null;
         }
 
-        SimpleSheet simpleSheet = new SimpleSheet( code + ":" + year + ":" + season, financialSheet.getSheets());
+        SimpleSheet simpleSheet = new SimpleSheet(code + ":" + year + ":" + season, financialSheet.getSheets());
 
         if (null == simpleSheet.getEps()) {
             return null;
@@ -189,7 +196,11 @@ public class FinancialInfoImpl implements FinancialInfo {
                         .toArray(String[]::new)
         );
 
-        simpleSheetRepo.save(new SimpleSheet(financialSheetId, financialSheet.getSheets()));
+        SimpleSheet simpleSheet = new SimpleSheet(financialSheetId, financialSheet.getSheets());
+
+        if (null != simpleSheet.getEps()) {
+            simpleSheetRepo.save(simpleSheet);
+        }
 
         financialSheetRepo.save(financialSheet);
 
