@@ -6,15 +6,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.List;
-import java.util.Map;
 
 public interface FinancialInfo {
     Log log = LogFactory.getLog(FinancialInfo.class);
 
     /**
      * 取得財報 資產負債表 綜合損益表 現金流量表
-     * @param code 公司代碼
-     * @param year 年度
+     *
+     * @param code   公司代碼
+     * @param year   年度
      * @param season 季
      * @return FinancialSheet
      * @throws Exception
@@ -23,8 +23,9 @@ public interface FinancialInfo {
 
     /**
      * 取得簡易財報資料
-     * @param code 公司代碼
-     * @param year 年度
+     *
+     * @param code   公司代碼
+     * @param year   年度
      * @param season 季
      * @return BalanceSheet
      * @throws Exception
@@ -33,6 +34,7 @@ public interface FinancialInfo {
 
     /**
      * 取得日期range內 季度簡易財報資料
+     *
      * @param code
      * @param beginDate
      * @param endDate

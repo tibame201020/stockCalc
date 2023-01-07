@@ -11,6 +11,10 @@ import javax.persistence.MappedSuperclass;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+
+/**
+ * 股價資訊(日)
+ */
 @ToString
 @NoArgsConstructor
 @MappedSuperclass

@@ -7,6 +7,9 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import java.io.Serializable;
 
+/**
+ * 財報原始資料
+ */
 @ToString
 @Setter
 @Getter

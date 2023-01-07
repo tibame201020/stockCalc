@@ -5,6 +5,9 @@ import lombok.*;
 import javax.persistence.*;
 import java.io.Serializable;
 
+/**
+ * 財報完整資料
+ */
 @ToString
 @Setter
 @Getter

@@ -8,6 +8,9 @@ import org.springframework.web.client.RestTemplate;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 
+/**
+ * wrapper RestTemplate & Jsoup
+ */
 public class WebProvider {
     String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36";
 
@@ -27,6 +30,9 @@ public class WebProvider {
 
 }
 
+/**
+ * for pass ssl
+ */
 class SSLUtil {
     HostnameVerifier hv = new HostnameVerifier() {
         public boolean verify(String urlHostName, SSLSession session) {

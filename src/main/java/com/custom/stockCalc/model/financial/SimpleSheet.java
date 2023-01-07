@@ -74,7 +74,7 @@ public class SimpleSheet implements Serializable {
     /**
      * 毛利(本業營收 - 本業成本)
      */
-    private BigDecimal grossProfit ;
+    private BigDecimal grossProfit;
     /**
      * 毛利率(毛利/本業營收)
      */
@@ -141,40 +141,40 @@ public class SimpleSheet implements Serializable {
     }
 
     private void setBalanceSheetProp(JsonObject jsonObject) {
-        this.currentAssets = getFromJsonObject(jsonObject, new String[] {"資產", "流動資產", "流動資產合計"});
-        this.nonCurrentAssets = getFromJsonObject(jsonObject, new String[] {"資產", "非流動資產", "非流動資產合計"});
-        this.totalAssets = getFromJsonObject(jsonObject, new String[] {"資產", "資產總計"});
-        this.currentLiabilities = getFromJsonObject(jsonObject, new String[] {"負債及權益", "負債", "流動負債", "流動負債合計"});
-        this.nonCurrentLiabilities = getFromJsonObject(jsonObject, new String[] {"負債及權益", "負債", "非流動負債", "非流動負債合計"});
-        this.totalLiabilities = getFromJsonObject(jsonObject, new String[] {"負債及權益", "負債", "負債總計"});
+        this.currentAssets = getFromJsonObject(jsonObject, new String[]{"資產", "流動資產", "流動資產合計"});
+        this.nonCurrentAssets = getFromJsonObject(jsonObject, new String[]{"資產", "非流動資產", "非流動資產合計"});
+        this.totalAssets = getFromJsonObject(jsonObject, new String[]{"資產", "資產總計"});
+        this.currentLiabilities = getFromJsonObject(jsonObject, new String[]{"負債及權益", "負債", "流動負債", "流動負債合計"});
+        this.nonCurrentLiabilities = getFromJsonObject(jsonObject, new String[]{"負債及權益", "負債", "非流動負債", "非流動負債合計"});
+        this.totalLiabilities = getFromJsonObject(jsonObject, new String[]{"負債及權益", "負債", "負債總計"});
         try {
-            this.equity = getFromJsonObject(jsonObject, new String[] {"負債及權益", "權益", "權益總額"});
+            this.equity = getFromJsonObject(jsonObject, new String[]{"負債及權益", "權益", "權益總額"});
         } catch (Exception e) {
-            this.equity = getFromJsonObject(jsonObject, new String[] {"負債及權益", "權益", "權益總計"});
+            this.equity = getFromJsonObject(jsonObject, new String[]{"負債及權益", "權益", "權益總計"});
         }
-        this.liabilitiesAndEquity = getFromJsonObject(jsonObject, new String[] {"負債及權益", "負債及權益總計"});
+        this.liabilitiesAndEquity = getFromJsonObject(jsonObject, new String[]{"負債及權益", "負債及權益總計"});
         // 普通股股本
-        BigDecimal ordinary = getFromJsonObject(jsonObject, new String[] {"負債及權益", "權益", "歸屬於母公司業主之權益", "股本", "普通股股本"});
+        BigDecimal ordinary = getFromJsonObject(jsonObject, new String[]{"負債及權益", "權益", "歸屬於母公司業主之權益", "股本", "普通股股本"});
         this.ordinaryCnt = BigDecimal.valueOf(Math.floor(ordinary.divide(BigDecimal.valueOf(10.0)).doubleValue()));
         this.navps = this.equity.divide(this.ordinaryCnt, 3, BigDecimal.ROUND_FLOOR);
     }
 
     private void setComprehensiveIncomeProp(JsonObject jsonObject) {
-        this.operatingRevenue = getFromJsonObject(jsonObject, new String[] {"營業收入", "營業收入合計"});
-        this.operatingCosts = getFromJsonObject(jsonObject, new String[] {"營業成本", "營業成本合計"});
+        this.operatingRevenue = getFromJsonObject(jsonObject, new String[]{"營業收入", "營業收入合計"});
+        this.operatingCosts = getFromJsonObject(jsonObject, new String[]{"營業成本", "營業成本合計"});
         this.grossProfit = this.operatingRevenue.subtract(this.operatingCosts);
         this.grossProfitPercent = this.grossProfit.divide(this.operatingRevenue, 5, BigDecimal.ROUND_FLOOR).multiply(BigDecimal.valueOf(100));
-        this.operatingExpenses = getFromJsonObject(jsonObject, new String[] {"營業費用", "營業費用合計"});
-        this.operatingIncome = getFromJsonObject(jsonObject, new String[] {"營業利益（損失）"});
-        this.nonOperatingIncome = getFromJsonObject(jsonObject, new String[] {"營業外收入及支出", "營業外收入及支出合計"});
-        this.eps = getFromJsonObject(jsonObject, new String[] {"基本每股盈餘", "基本每股盈餘合計"});
-        this.dEps = getFromJsonObject(jsonObject, new String[] {"稀釋每股盈餘", "稀釋每股盈餘合計"});
+        this.operatingExpenses = getFromJsonObject(jsonObject, new String[]{"營業費用", "營業費用合計"});
+        this.operatingIncome = getFromJsonObject(jsonObject, new String[]{"營業利益（損失）"});
+        this.nonOperatingIncome = getFromJsonObject(jsonObject, new String[]{"營業外收入及支出", "營業外收入及支出合計"});
+        this.eps = getFromJsonObject(jsonObject, new String[]{"基本每股盈餘", "基本每股盈餘合計"});
+        this.dEps = getFromJsonObject(jsonObject, new String[]{"稀釋每股盈餘", "稀釋每股盈餘合計"});
     }
 
     private void setCashFlowsProp(JsonObject jsonObject) {
-        this.operatingActivities = getFromJsonObject(jsonObject, new String[] {"營業活動之淨現金流入（流出）"});
-        this.investingActivities = getFromJsonObject(jsonObject, new String[] {"投資活動之現金流量", "投資活動之淨現金流入（流出）"});
-        this.financingActivities = getFromJsonObject(jsonObject, new String[] {"籌資活動之現金流量", "籌資活動之淨現金流入（流出）"});
+        this.operatingActivities = getFromJsonObject(jsonObject, new String[]{"營業活動之淨現金流入（流出）"});
+        this.investingActivities = getFromJsonObject(jsonObject, new String[]{"投資活動之現金流量", "投資活動之淨現金流入（流出）"});
+        this.financingActivities = getFromJsonObject(jsonObject, new String[]{"籌資活動之現金流量", "籌資活動之淨現金流入（流出）"});
     }
 
     private BigDecimal getFromJsonObject(JsonObject jsonObject, String[] props) {

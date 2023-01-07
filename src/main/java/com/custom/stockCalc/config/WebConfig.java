@@ -7,6 +7,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import static com.custom.stockCalc.constant.Constant.CORS_URLS;
 
+/**
+ * 跨域設定
+ */
 @EnableWebMvc
 @Configuration
 public class WebConfig implements WebMvcConfigurer {

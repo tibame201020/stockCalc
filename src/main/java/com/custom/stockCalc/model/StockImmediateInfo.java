@@ -7,6 +7,9 @@ import org.springframework.util.CollectionUtils;
 import java.io.Serializable;
 import java.util.Arrays;
 
+/**
+ * 即時股價資訊
+ */
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
