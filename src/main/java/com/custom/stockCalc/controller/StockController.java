@@ -4,7 +4,12 @@ import com.custom.stockCalc.model.CodeParam;
 import com.custom.stockCalc.model.StockData;
 import com.custom.stockCalc.model.StockImmediateInfo;
 import com.custom.stockCalc.model.financial.SimpleSheet;
+import com.custom.stockCalc.model.stockDayView.Bwibbu;
+import com.custom.stockCalc.model.stockDayView.CompanyFinancialReport;
+import com.custom.stockCalc.model.stockDayView.CompanySummaryReport;
+import com.custom.stockCalc.model.stockDayView.StockDayAvg;
 import com.custom.stockCalc.service.FinancialInfo;
+import com.custom.stockCalc.service.StockDayView;
 import com.custom.stockCalc.service.StockInfo;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +29,9 @@ public class StockController {
     private StockInfo stockInfo;
     @Autowired
     private FinancialInfo financialInfo;
+
+    @Autowired
+    private StockDayView stockDayView;
 
     /**
      * 取得日期區間內股價資訊
@@ -73,6 +81,50 @@ public class StockController {
     @RequestMapping("/getSheetByCodeAndDateRange")
     public List<SimpleSheet> getSheetByCodeAndDateRange(@RequestBody CodeParam codeParam) throws Exception {
         return financialInfo.getSheetByCodeAndDateRange(codeParam.getCode(), codeParam.getBeginDate(), codeParam.getEndDate());
+    }
+
+    /**
+     * 取得上市公司營益分析查詢彙總表(全體公司彙總報表)
+     *
+     * @return List<CompanySummaryReport>
+     * @throws Exception
+     */
+    @RequestMapping("getCompanySummaryReport")
+    public List<CompanySummaryReport> getCompanySummaryReport() throws Exception {
+        return stockDayView.getCompanySummaryReport();
+    }
+
+    /**
+     * 取得當季上市公司報表
+     *
+     * @return List<CompanyFinancialReport>
+     * @throws Exception
+     */
+    @RequestMapping("getCompanyFinancialReport")
+    public List<CompanyFinancialReport> getCompanyFinancialReport() throws Exception {
+        return stockDayView.getCompanyFinancialReport();
+    }
+
+    /**
+     * 取得昨收與月均價格
+     *
+     * @return List<StockDayAvg>
+     * @throws Exception
+     */
+    @RequestMapping("getStockDayAvg")
+    List<StockDayAvg> getStockDayAvg() throws Exception {
+        return stockDayView.getStockDayAvg();
+    }
+
+    /**
+     * 取得上市個股日本益比、殖利率及股價淨值比
+     *
+     * @return List<Bwibbu>
+     * @throws Exception
+     */
+    @RequestMapping("getBwibbu")
+    List<Bwibbu> getBwibbu() throws Exception {
+        return stockDayView.getBwibbu();
     }
 
 }

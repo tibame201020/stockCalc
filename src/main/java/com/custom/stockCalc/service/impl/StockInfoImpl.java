@@ -68,7 +68,10 @@ public class StockInfoImpl implements StockInfo {
 
             String dateFormat = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             boolean isThisMonth = dateProvider.isThisMonth(dateFormat);
-            stockDataList.addAll(getStockInfo(code, dateFormat, isThisMonth));
+            List<StockData> stockDatas = getStockInfo(code, dateFormat, isThisMonth);
+            if (null != stockDatas && !stockDatas.isEmpty()) {
+                stockDataList.addAll(stockDatas);
+            }
         }
         return stockDataList;
     }

@@ -168,7 +168,11 @@ public class SimpleSheet implements Serializable {
         this.operatingIncome = getFromJsonObject(jsonObject, new String[]{"營業利益（損失）"});
         this.nonOperatingIncome = getFromJsonObject(jsonObject, new String[]{"營業外收入及支出", "營業外收入及支出合計"});
         this.eps = getFromJsonObject(jsonObject, new String[]{"基本每股盈餘", "基本每股盈餘合計"});
-        this.dEps = getFromJsonObject(jsonObject, new String[]{"稀釋每股盈餘", "稀釋每股盈餘合計"});
+        try {
+            this.dEps = getFromJsonObject(jsonObject, new String[]{"稀釋每股盈餘", "稀釋每股盈餘合計"});
+        } catch (Exception e) {
+            this.dEps = null;
+        }
     }
 
     private void setCashFlowsProp(JsonObject jsonObject) {
