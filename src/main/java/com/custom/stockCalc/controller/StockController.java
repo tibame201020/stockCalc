@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * wrapper opendata twse
+ */
 @RestController
 @RequestMapping("/api/stock")
 public class StockController {
@@ -29,7 +32,6 @@ public class StockController {
     private StockInfo stockInfo;
     @Autowired
     private FinancialInfo financialInfo;
-
     @Autowired
     private StockDayView stockDayView;
 

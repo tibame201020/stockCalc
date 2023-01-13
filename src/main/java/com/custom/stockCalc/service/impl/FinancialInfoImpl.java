@@ -5,6 +5,7 @@ import com.custom.stockCalc.model.config.TaskKey;
 import com.custom.stockCalc.model.financial.FinancialOriginal;
 import com.custom.stockCalc.model.financial.FinancialSheet;
 import com.custom.stockCalc.model.financial.SimpleSheet;
+import com.custom.stockCalc.provider.DateProvider;
 import com.custom.stockCalc.provider.WebProvider;
 import com.custom.stockCalc.repo.FinancialOriginalRepo;
 import com.custom.stockCalc.repo.FinancialSheetRepo;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +29,8 @@ import java.util.List;
 public class FinancialInfoImpl implements FinancialInfo {
 
     private final WebProvider webProvider = new WebProvider();
+    private final DateProvider dateProvider = new DateProvider();
+
     // need stockCode 西元年月日 season
     String FINANCIAL_URL = "https://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID=%s&SYEAR=%s&SSEASON=%s&REPORT_ID=C#BalanceSheet";
     @Autowired
@@ -69,15 +71,8 @@ public class FinancialInfoImpl implements FinancialInfo {
     public List<SimpleSheet> getSheetByCodeAndDateRange(String code, String beginDate, String endDate) throws Exception {
         List<SimpleSheet> sheets = new ArrayList<>();
 
-        DateTimeFormatter formatter;
-        if (beginDate.contains("/")) {
-            formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-        } else {
-            formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        }
-
-        LocalDate begin = LocalDate.parse(beginDate, formatter).withDayOfMonth(1);
-        LocalDate end = LocalDate.parse(endDate, formatter).withDayOfMonth(1).plusMonths(1);
+        LocalDate begin = dateProvider.parseDate(beginDate).withDayOfMonth(1);
+        LocalDate end = dateProvider.parseDate(endDate).withDayOfMonth(1).plusMonths(1);
 
         for (LocalDate date = begin; date.isBefore(end); date = date.plusMonths(3)) {
             String yearSeason = getYearSeason(date);

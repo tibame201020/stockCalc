@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,7 +85,7 @@ public class ScheduledTasks {
         logData("getStockData", next, stockDataDate, stockDataList);
     }
 
-    @Scheduled(fixedDelay = 1000 * 60)
+    @Scheduled(fixedDelay = 1000 * 60 * 2)
     public void getFinancialData() throws Exception {
         financialDate = dateProvider.getPreSeasonDate(financialDate);
         String next = getNextFinancialCompany(financialDate.contains(TaskKey.changeNewStockCode.toString()));
@@ -153,12 +154,59 @@ public class ScheduledTasks {
         if (taskConfigRepo.findById(key).isPresent()) {
             taskConfigRepo.deleteById(key);
         }
+        log.info("remain list " + key + " : " + dataList.toString());
         taskConfigRepo.save(new TaskConfig(key, dataList));
     }
 
     private void logData(String where, String next, String date, Object data) {
         String baseStr = "%s : { code:%s, date:%s, %s }";
         log.info(String.format(baseStr, where, next, date, data));
+    }
+
+    public static void main(String[] args) {
+//        String cfArea = "6.87";
+//        double cfAreaValue = Math.floor(Double.parseDouble(cfArea) * 100.0) / 100.0;
+//        System.out.println(cfArea + " : " + cfAreaValue);
+//
+//        cfArea = "7.87";
+//        cfAreaValue = Math.floor(new BigDecimal(cfArea).doubleValue() * 100.0) / 100.0;
+//        System.out.println(cfArea + " : " + cfAreaValue);
+//
+//        cfArea = "8.87";
+//        cfAreaValue = Math.floor(new BigDecimal(cfArea).doubleValue() * 100.0) / 100.0;
+//        System.out.println(cfArea + " : " + cfAreaValue);
+//
+//        cfArea = "8.8701";
+//        cfAreaValue = Math.floor(new BigDecimal(cfArea).doubleValue() * 100.0) / 100.0;
+//        System.out.println(cfArea + " : " + cfAreaValue);
+//
+//        cfArea = "8.871";
+//        cfAreaValue = Math.floor(Double.parseDouble(cfArea) * 100.0) / 100.0;
+//        System.out.println(cfArea + " : " + cfAreaValue);
+//
+//        cfArea = "9.87";
+//        cfAreaValue = Math.floor(Double.parseDouble(cfArea) * 100.0) / 100.0;
+//        System.out.println(cfArea + " : " + cfAreaValue);
+//
+//        cfArea = "10.87";
+//        cfAreaValue = Math.floor(Double.parseDouble(cfArea) * 100.0) / 100.0;
+//        System.out.println(cfArea + " : " + cfAreaValue);
+
+        BigDecimal r = new BigDecimal("6.87");
+        BigDecimal i = r.setScale(2, 3);
+        System.out.println(r + ":" + i);
+
+        r = new BigDecimal("7.87");
+        i = r.setScale(2, 3);
+        System.out.println(r + ":" + i);
+
+        r = new BigDecimal("8.87");
+        i = r.setScale(2, 3);
+        System.out.println(r + ":" + i);
+
+        r = new BigDecimal("9.87");
+        i = r.setScale(2, 3);
+        System.out.println(r + ":" + i);
     }
 
 }

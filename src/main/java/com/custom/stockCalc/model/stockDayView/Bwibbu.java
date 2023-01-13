@@ -37,7 +37,6 @@ public class Bwibbu implements Serializable {
      */
     @JsonProperty(value = "PBratio")
     private BigDecimal pBratio;
-
     /**
      * 更新資料日期
      */

@@ -51,14 +51,8 @@ public class StockInfoImpl implements StockInfo {
 
         List<StockData> stockDataList = new ArrayList<>();
 
-        DateTimeFormatter formatter;
-        if (beginDate.contains("/")) {
-            formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-        } else {
-            formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        }
-        LocalDate begin = LocalDate.parse(beginDate, formatter).withDayOfMonth(1);
-        LocalDate end = LocalDate.parse(endDate, formatter).withDayOfMonth(1).plusMonths(1);
+        LocalDate begin = dateProvider.parseDate(beginDate).withDayOfMonth(1);
+        LocalDate end = dateProvider.parseDate(endDate).withDayOfMonth(1).plusMonths(1);
         LocalDate now = LocalDate.now();
         for (LocalDate date = begin; date.isBefore(end); date = date.plusMonths(1)) {
 

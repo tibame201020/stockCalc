@@ -53,4 +53,33 @@ public class DateProvider {
         }
     }
 
+    public String parseDate(String date, String targetPattern) {
+        DateTimeFormatter formatter;
+        if (date.contains("/")) {
+            formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        } else if (date.contains("-")) {
+            formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        } else {
+            formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        }
+
+
+        LocalDate localDate = LocalDate.parse(date, formatter);
+        return localDate.format(DateTimeFormatter.ofPattern(targetPattern));
+
+    }
+
+    public LocalDate parseDate(String date) {
+        DateTimeFormatter formatter;
+        if (date.contains("/")) {
+            formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        } else if (date.contains("-")) {
+            formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        } else {
+            formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        }
+
+        return LocalDate.parse(date, formatter);
+    }
+
 }
