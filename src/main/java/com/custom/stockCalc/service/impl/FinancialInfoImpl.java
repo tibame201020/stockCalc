@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class FinancialInfoImpl implements FinancialInfo {
@@ -87,6 +88,12 @@ public class FinancialInfoImpl implements FinancialInfo {
         }
 
         return sheets;
+    }
+
+    @Override
+    public List<String> getCompanyNmList(String key) throws Exception {
+        List<String> companyList = taskConfigRepo.findById(TaskKey.companyList_financial.toString()).orElse(new TaskConfig()).getConfigValue();
+        return companyList.stream().filter(s -> s.contains(key)).collect(Collectors.toList());
     }
 
     /**

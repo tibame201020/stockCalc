@@ -114,7 +114,7 @@ public class StockController {
      * @throws Exception
      */
     @RequestMapping("getStockDayAvg")
-    List<StockDayAvg> getStockDayAvg() throws Exception {
+    public List<StockDayAvg> getStockDayAvg() throws Exception {
         return stockDayView.getStockDayAvg();
     }
 
@@ -125,8 +125,32 @@ public class StockController {
      * @throws Exception
      */
     @RequestMapping("getBwibbu")
-    List<Bwibbu> getBwibbu() throws Exception {
+    public List<Bwibbu> getBwibbu() throws Exception {
         return stockDayView.getBwibbu();
+    }
+
+    /**
+     * 取得有關鍵字的股票代碼List，以利使用者查詢
+     *
+     * @param key 關鍵字
+     * @return 包含關鍵字的股票代碼List
+     * @throws Exception
+     */
+    @RequestMapping("getCodeNmList")
+    public List<String> getCodeNmList(@RequestBody String key) throws Exception {
+        return stockInfo.getCodeNmList(key);
+    }
+
+    /**
+     * 取得有關鍵字的公司代碼List，以利使用者查詢
+     *
+     * @param key 關鍵字
+     * @return 包含關鍵字的公司代碼List
+     * @throws Exception
+     */
+    @RequestMapping("getCompanyNmList")
+    public List<String> getCompanyNmList(@RequestBody String key) throws Exception {
+        return financialInfo.getCompanyNmList(key);
     }
 
 }

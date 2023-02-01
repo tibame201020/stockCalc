@@ -42,4 +42,13 @@ public interface FinancialInfo {
      * @throws Exception
      */
     List<SimpleSheet> getSheetByCodeAndDateRange(String code, String beginDate, String endDate) throws Exception;
+
+    /**
+     * 取得有關鍵字的公司代碼，以利使用者查詢
+     *
+     * @param key 關鍵字
+     * @return 包含關鍵字的公司代碼List
+     * @throws Exception
+     */
+    List<String> getCompanyNmList(String key) throws Exception;
 }
