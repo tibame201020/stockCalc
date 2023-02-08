@@ -56,7 +56,11 @@ public class StockController {
      */
     @RequestMapping("/getImmediateStock")
     public Map<String, StockImmediateInfo> getImmediateStock(@RequestBody String code) throws Exception {
-        return stockInfo.getImmediateStock(code);
+        try {
+            return stockInfo.getImmediateStock(code);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
