@@ -72,9 +72,9 @@ class _Plot implements Serializable {
     @JsonProperty(value = "labels")
     private LocalDate[] labels;
     @JsonProperty(value = "series")
-    private int[] series;
+    private BigDecimal[] series;
     @JsonProperty(value = "signal")
-    private int[] signal;
+    private BigDecimal[] signal;
     @JsonProperty(value = "trade_price")
     private BigDecimal[] tradePrice;
 }
@@ -120,7 +120,7 @@ class _PlotCompare implements Serializable {
     @JsonProperty(value = "labels")
     private LocalDate[] labels;
     @JsonProperty(value = "series")
-    private int[] series;
+    private BigDecimal[] series;
     @JsonProperty(value = "market_series")
     private BigDecimal[] marketSeries;
 }

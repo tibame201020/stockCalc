@@ -1,5 +1,7 @@
 package com.custom.stockCalc.service.impl;
 
+import com.custom.stockCalc.model.config.TaskConfig;
+import com.custom.stockCalc.model.config.TaskKey;
 import com.custom.stockCalc.model.finmind.backTesting.BackTesting;
 import com.custom.stockCalc.model.finmind.backTesting.BackTestingStatus;
 import com.custom.stockCalc.model.finmind.strategyResult.StrategyResult;
@@ -10,10 +12,7 @@ import com.custom.stockCalc.model.finmind.strategySummary.StrategySummary;
 import com.custom.stockCalc.model.finmind.strategySummary.StrategySummaryStatus;
 import com.custom.stockCalc.provider.DateProvider;
 import com.custom.stockCalc.provider.WebProvider;
-import com.custom.stockCalc.repo.BackTestingRepo;
-import com.custom.stockCalc.repo.StrategyResultByCodeRepo;
-import com.custom.stockCalc.repo.StrategyResultRepo;
-import com.custom.stockCalc.repo.StrategySummaryRepo;
+import com.custom.stockCalc.repo.*;
 import com.custom.stockCalc.service.StrategyByFinmind;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,6 +33,9 @@ public class StrategyByFinmindImpl implements StrategyByFinmind {
     private StrategyResultByCodeRepo strategyResultByCodeRepo;
     @Autowired
     private BackTestingRepo backTestingRepo;
+
+    @Autowired
+    private TaskConfigRepo taskConfigRepo;
 
     private WebProvider webProvider = new WebProvider();
     private DateProvider dateProvider = new DateProvider();
@@ -81,6 +83,10 @@ public class StrategyByFinmindImpl implements StrategyByFinmind {
 
     @Override
     public List<StrategyResultByCode> getStrategyResultByCode(String stockCode) throws Exception {
+        if (!stockCodeIsValid(stockCode)) {
+            return null;
+        }
+
         List<StrategyResultByCode> strategyResultByCodeList = strategyResultByCodeRepo.findByStockId(stockCode);
 
         if (strategyResultByCodeList.isEmpty()) {
@@ -100,6 +106,10 @@ public class StrategyByFinmindImpl implements StrategyByFinmind {
 
     @Override
     public BackTesting getBackTesting(String strategyName, String stockCode, long userFunds, String beginDate, String endDate) throws Exception {
+        if (!stockCodeIsValid(stockCode)) {
+            return null;
+        }
+
         beginDate = dateProvider.parseDate(beginDate, "yyyy-MM-dd");
         endDate = dateProvider.parseDate(endDate, "yyyy-MM-dd");
         String backTestingId = stockCode + strategyName + userFunds + beginDate + endDate;
@@ -166,5 +176,10 @@ public class StrategyByFinmindImpl implements StrategyByFinmind {
         StrategySummaryStatus strategySummaryStatus = webProvider.getUrlToObject(strategySummaryUrl, StrategySummaryStatus.class);
         StrategySummary[] strategySummaries = strategySummaryStatus.getData().getStrategySummaries();
         return Arrays.stream(strategySummaries).peek(strategySummary -> strategySummary.setUpdateDate(LocalDate.now())).collect(Collectors.toList());
+    }
+
+    private boolean stockCodeIsValid(String stockCode) {
+        List<String> stockCodes = taskConfigRepo.findById(TaskKey.stockCodes.toString()).orElseGet(TaskConfig::new).getConfigValue();
+        return stockCodes.contains(stockCode);
     }
 }
