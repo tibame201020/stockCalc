@@ -7,14 +7,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-//@EnableScheduling
+@EnableScheduling
 public class StockCalcApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(StockCalcApplication.class, args);
     }
 
-    @Bean
+    //@Bean
     CommandLineRunner run() {
         return args -> {
 //			Log log = LogFactory.getLog(this.getClass());
